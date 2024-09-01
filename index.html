@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Web3 Wallet Connection</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 15px 30px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    div {
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Connect Wallet Button -->
+<div style="margin-top: 50px;">
+  <button id="connect-wallet-button">Connect Wallet</button>
+</div>
+
+<!-- Sign Message Button -->
+<div>
+  <button id="sign-message-button">Sign Message</button>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    function checkWeb3GLFunction(funcName) {
+      if (window.web3gl && typeof window.web3gl[funcName] === "function") {
+        console.log(`${funcName} function is available.`);
+        return true;
+      }
+      console.log(`${funcName} function is not available yet.`);
+      return false;
+    }
+
+    function setupButtons() {
+      const connectButton = document.getElementById("connect-wallet-button");
+      connectButton.addEventListener("click", async function() {
+        if (checkWeb3GLFunction("connect")) {
+          console.log("Connect button clicked.");
+          try {
+            await window.web3gl.connect();
+            const publicAddress = window.web3gl.connectAccount;
+            // Redirect to another page with the public address as a query parameter
+            window.location.href = `game.html?address=${encodeURIComponent(publicAddress)}`;
+          } catch (error) {
+            console.error("Failed to connect wallet:", error);
+          }
+        } else {
+          console.error("web3gl.connect is not available. Please check if index.js is loaded properly.");
+        }
+      });
+
+      const signMessageButton = document.getElementById("sign-message-button");
+      signMessageButton.addEventListener("click", function() {
+        const message = "Hello, Web3!";
+        if (checkWeb3GLFunction("signMessage")) {
+          console.log("Sign Message button clicked.");
+          window.web3gl.signMessage(message);
+        } else {
+          console.error("web3gl.signMessage is not available. Please check if index.js is loaded properly.");
+        }
+      });
+    }
+
+    function loadScript(url, callback) {
+      const script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src = url;
+      script.onload = callback;
+      document.body.appendChild(script);
+    }
+
+    loadScript("web3/index.js", function() {
+      console.log("index.js loaded.");
+      setupButtons();
+    });
+  });
+</script>
+
+</body>
+</html>

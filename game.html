@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Web3ThreeJS</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+        body { margin: 0; }
+        button { position: absolute; right: 20px; bottom: 20px; }
+        .address-display {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 16px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #sign-message-button {
+            right: 20px;
+            bottom: 80px; /* Adjust position above the Change Animation button */
+        }
+    </style>
+</head>
+<body>
+
+<div class="address-display" id="wallet-address"></div>
+<button id="sign-message-button">Sign Message</button>
+<button onClick="javascript:game.toggleAnimation()">Change Animation</button>
+
+<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.37/dist/web3.min.js"></script>
+<script src="./web3/libs/three.min.js"></script>
+<script src="./web3/libs/inflate.min.js"></script>
+<script src="./web3/libs/FBXLoader.js"></script>
+<script src="./web3/libs/OrbitControls.js"></script>
+<script src="./web3/libs/Detector.js"></script>
+<script src="./web3/game.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", async function() {
+        if (window.ethereum) {
+            // Create a Web3 instance using the provided MetaMask provider
+            window.web3 = new Web3(window.ethereum);
+
+            try {
+                // Request account access if needed
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+            } catch (error) {
+                console.error("User denied account access");
+            }
+        } else {
+            console.error("MetaMask is not installed");
+        }
+
+        // Retrieve the public address from the URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const publicAddress = urlParams.get('address');
+
+        if (publicAddress) {
+            console.log("Public Address:", publicAddress);
+
+            // Display the public address on the screen
+            document.getElementById("wallet-address").innerText = `Wallet Address: ${publicAddress}`;
+        }
+
+        // Initialize the game
+        const game = new Game(publicAddress); // Pass the public address to the Game class
+        window.game = game; // For debugging only
+
+        // Function to sign a message using MetaMask
+        async function signMessage(message) {
+            if (window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const from = accounts[0];
+                    const sign = await window.web3.eth.personal.sign(message, from, '');
+                    console.log("Signed Message:", sign);
+                } catch (error) {
+                    console.error("Failed to sign message:", error);
+                }
+            } else {
+                console.error("Ethereum provider not found. Please install MetaMask.");
+            }
+        }
+
+        // Set up the sign message button
+        const signMessageButton = document.getElementById("sign-message-button");
+        signMessageButton.addEventListener("click", function() {
+            const message = "Hello, Web3!";
+            signMessage(message);
+        });
+    });
+</script>
+
+</body>
+</html>
